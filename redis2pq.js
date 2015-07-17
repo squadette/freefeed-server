@@ -66,7 +66,7 @@ var run = async function() {
       var p = await orm.Post.forge({uuid: post.id}).fetch()
       var props = {
         body: post.body,
-        // user: post.userId // @todo
+        user: post.userId // @todo
       }
       if (!p) {
         console.log(`Save a new post ${post.body}`)

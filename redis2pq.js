@@ -12,105 +12,81 @@ import orm from './orm'
 process.env.NODE_ENV = "development"
 
 var run = async function() {
-  console.log(`Start`)
   var app = express()
-  console.log(`Start2`)
   var app = await environment.init(app)
-  console.log(`Start3`)
   var database = redis.connect()
-  console.log(`Start4`)
 
   var usernames = await database.keysAsync('username:*')
-  console.log(`Start5`)
   var userIds = await* usernames.map((username) => database.getAsync(username))
-  console.log(`Start6`)
   var users = await* userIds.map((userId) => models.FeedFactory.findById(userId))
-  console.log(`Start7`)
   var timelines = await* users.map((user) => user.getPostsTimeline())
-  console.log(`Start8`)
 
   await* users.map(async function(user) {
-    console.log(`Start9`)
-    var u = orm.User.forge({uuid: user.id})
-    u = await u.fetch()
+    var u = await orm.User.forge({uuid: user.id}).fetch()
+    var props = {
+      username: user.username,
+      screenName: user.screenName,
+      hashedPassword: user.hashedPassword,
+      email: user.email,
+      isPrivate: user.isPrivate,
+      type: user.type,
+      // createdAt: user.createdAt,
+      // updatedAt: user.updatedAt,
+      deletedAt: null,
+      tokens: {},
+      bans: []
+    }
     if (!u) {
-      u = orm.User.forge({
-        username: user.username,
-        screenName: user.screenName,
-        hashedPassword: user.hashedPassword,
-        email: user.email,
-        isPrivate: user.isPrivate,
-        type: user.type,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        deletedAt: null,
-        tokens: {},
-        bans: []
-      })
       console.log(`Save a new user ${user.username}`)
-      u.save({uuid: user.id})
+      return orm.User.forge(props).save({uuid: user.id})
     } else {
       console.log(`Update existing user ${user.username}`)
-      u.save({
-        username: user.username,
-        screenName: user.screenName,
-        hashedPassword: user.hashedPassword,
-        email: user.email,
-        isPrivate: user.isPrivate,
-        type: user.type,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        deletedAt: null,
-        tokens: {},
-        bans: []
-      }, {patch: true})
+      return u.save(props, {patch: true})
     }
   })
   console.log(`Users saved`)
 
   await* timelines.map(async function(timeline) {
-    console.log(`Start12`)
-    var t = orm.Timeline.forge({
+    var t = await orm.Timeline.forge({uuid: timeline.id}).fetch()
+    var props = {
       type: 'Posts'
-    })
-    console.log(`Start13`)
-    await t.save({uuid: timeline.id})
+    }
+    if (!t) {
+      console.log(`Save a new timeline ${timeline.id}`)
+      await orm.Timeline.forge(props).save({uuid: timeline.id})
+    } else {
+      console.log(`Update existing timeline ${timeline.id}`)
+      await t.save(props, {patch: true})
+    }
     console.log(`Timeline ${t.id} saved`)
 
     let posts = await timeline.getPosts(0, 10)
-    console.log(`Start14`)
+    console.log(`Save timeline posts`)
     await* posts.map(async function(post) {
-      console.log(JSON.stringify(post))
-      var p = orm.Post.forge({
+      var p = await orm.Post.forge({uuid: post.id}).fetch()
+      var props = {
         body: post.body,
-        user: post.userId
-      })
-      console.log(`Start15`)
-      await p.save({uuid: post.id})
-      console.log(`Post ${p.id} saved`)
-  //     let postedTo = await post.getPostedToIds()
-  //     console.log('Checking post ' + post.id + '.')
-  //     if (postedTo.length === 0) {
-  //       let user = await models.User.findById(post.userId)
-  //       let key = await user.getPostsTimelineId()
-  //       let to = mkKey(["post", post.id, "to"])
-  //       console.log('Need to set ' + to + ' to ' + key + '.')
-  //       await database.sadd(to, key)
-  //       console.log('Fixed.')
-  //     } else {
-  //       console.log('OK.')
-  //     }
+        // user: post.userId // @todo
+      }
+      if (!p) {
+        console.log(`Save a new post ${post.body}`)
+        return orm.Post.forge(props).save({uuid: post.id})
+      } else {
+        console.log(`Update existing post ${post.body}`)
+        return p.save(props, {patch: true})
+      }
     })
+    console.log(`Posts saved`)
+    return true
   })
+  console.log(`Timelines saved`)
 
   console.log('Done.')
   process.exit()
 }
 
-console.log(`Start16`)
 try {
   run()
 } catch(e) {
   console.log(`Error: ${e}`)
 }
-console.log(`Start17`)

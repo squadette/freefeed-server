@@ -33,10 +33,13 @@ bookshelf.Model.prototype.format = function(attrs) {
 var User = bookshelf.Model.extend({
   tableName: 'users',
   idAttribute: 'uuid',
-  hasTimestamps: ['createdAt', 'updatedAt']
+  hasTimestamps: ['createdAt', 'updatedAt'],
   // roles: function() {
-  //   return this.hasMany(Role);
+  //   return this.hasMany(Role)
   // }
+  posts: function() {
+    return this.hasMany(Post)
+  }
 })
 exports.User = User
 
@@ -68,6 +71,12 @@ var Post = bookshelf.Model.extend({
   },
   user: function() {
     return this.belongsToOne(User)
+  },
+  comments: function() {
+    return this.hasMany(Comment)
+  },
+  likes: function() {
+    return this.hasMany(Like)
   }
 })
 exports.Post = Post

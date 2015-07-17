@@ -3,7 +3,7 @@ import _ from 'lodash'
 
 // @todo Move this to DbConfig
 var knex = require('knex')({
-  client: 'pg',
+  client: 'postgres',
   connection: {
     host     : '127.0.0.1',
     user     : 'pepyatka',

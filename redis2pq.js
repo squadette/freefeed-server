@@ -31,24 +31,42 @@ var run = async function() {
 
   await* users.map(async function(user) {
     console.log(`Start9`)
-    var u = orm.User.forge({
-      username: user.username,
-      screenName: user.screenName,
-      hashedPassword: user.hashedPassword,
-      email: user.email,
-      isPrivate: user.isPrivate,
-      type: user.type,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      deletedAt: null,
-      tokens: {},
-      bans: []
-    })
-    console.log(`Start10`)
-    u.save({id: user.id})
-    console.log(`User ${u.id} saved`)
+    var u = orm.User.forge({uuid: user.id})
+    u = await u.fetch()
+    if (!u) {
+      u = orm.User.forge({
+        username: user.username,
+        screenName: user.screenName,
+        hashedPassword: user.hashedPassword,
+        email: user.email,
+        isPrivate: user.isPrivate,
+        type: user.type,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        deletedAt: null,
+        tokens: {},
+        bans: []
+      })
+      console.log(`Save a new user ${user.username}`)
+      u.save({uuid: user.id})
+    } else {
+      console.log(`Update existing user ${user.username}`)
+      u.save({
+        username: user.username,
+        screenName: user.screenName,
+        hashedPassword: user.hashedPassword,
+        email: user.email,
+        isPrivate: user.isPrivate,
+        type: user.type,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        deletedAt: null,
+        tokens: {},
+        bans: []
+      }, {patch: true})
+    }
   })
-  console.log(`Start11`)
+  console.log(`Users saved`)
 
   await* timelines.map(async function(timeline) {
     console.log(`Start12`)

@@ -85,8 +85,4 @@ var run = async function() {
   process.exit()
 }
 
-try {
-  run()
-} catch(e) {
-  console.log(`Error: ${e}`)
-}
+run().catch(function(e) { console.log(`Error: ${e}`) })

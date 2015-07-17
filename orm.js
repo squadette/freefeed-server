@@ -61,7 +61,7 @@ exports.Role = Role
 var Post = bookshelf.Model.extend({
   tableName: 'posts',
   idAttribute: 'uuid',
-  hasTimestamps: ['createdAt', 'updatedAt']
+  hasTimestamps: ['createdAt', 'updatedAt'],
 
   timelines: function() {
     return this.belongsToMany(Timeline, 'timelines_posts')

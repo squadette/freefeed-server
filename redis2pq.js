@@ -56,7 +56,7 @@ var run = async function() {
       type: 'Posts'
     })
     console.log(`Start13`)
-    await t.save({id: timeline.id})
+    await t.save({uuid: timeline.id})
     console.log(`Timeline ${t.id} saved`)
 
     let posts = await timeline.getPosts(0, 10)
@@ -68,7 +68,7 @@ var run = async function() {
         user: post.userId
       })
       console.log(`Start15`)
-      await p.save({id: post.id})
+      await p.save({uuid: post.id})
       console.log(`Post ${p.id} saved`)
   //     let postedTo = await post.getPostedToIds()
   //     console.log('Checking post ' + post.id + '.')

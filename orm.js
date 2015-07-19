@@ -64,13 +64,13 @@ exports.Role = Role
 var Post = bookshelf.Model.extend({
   tableName: 'posts',
   idAttribute: 'uuid',
-  hasTimestamps: ['createdAt', 'updatedAt'],
+  hasTimestamps: false, //this is to create date manually //['createdAt', 'updatedAt'],
 
   timelines: function() {
     return this.belongsToMany(Timeline, 'timelines_posts')
   },
   user: function() {
-    return this.belongsToOne(User)
+    return this.belongsTo(User)
   },
   comments: function() {
     return this.hasMany(Comment)

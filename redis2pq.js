@@ -8,10 +8,27 @@ import _ from 'lodash'
 import redis from './config/database'
 import models from './app/models'
 import orm from './orm'
+import uuid from 'uuid'
 
 process.env.NODE_ENV = "development"
 
-var run = async function() {
+// Generate a random date between start and end
+function randomDate(start, end) {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
+let makePost = async function(idx, body, userId) {
+  let props = {
+    body: `#${idx} copy of ${body}`,
+    user_uuid: userId,
+    createdAt: randomDate(new Date(1999, 1, 1), new Date()) // between olden days and today
+  }
+  let id = uuid.v4()
+  // console.log(`Save a new post ${props.body} as ${id}`)
+  return orm.Post.forge(props).save({uuid: id})
+}
+
+let run = async function() {
   var app = express()
   var app = await environment.init(app)
   var database = redis.connect()
@@ -46,7 +63,7 @@ var run = async function() {
   })
   console.log(`Users saved`)
 
-  await* timelines.map(async function(timeline) {
+  for (let timeline of timelines) {
     var t = await orm.Timeline.forge({uuid: timeline.id}).fetch()
     var props = {
       type: 'Posts'
@@ -60,29 +77,27 @@ var run = async function() {
     }
     console.log(`Timeline ${t.id} saved`)
 
-    let posts = await timeline.getPosts(0, 10)
-    console.log(`Save timeline posts`)
+    let posts = await timeline.getPosts(0, 10000000)
+    console.log(`Save timeline ${t.id} posts (${posts.length} posts found)`)
     await* posts.map(async function(post) {
-      var p = await orm.Post.forge({uuid: post.id}).fetch()
-      var props = {
-        body: post.body,
-        user: post.userId // @todo
+      var u = await orm.User.forge({uuid: post.userId}).fetch()
+      // Generate 15000 new posts per source post
+      // Adjust UUID and posting date
+      for (let x of _.range(15000)) {
+        await makePost(x+1, post.body, u.id)
       }
-      if (!p) {
-        console.log(`Save a new post ${post.body}`)
-        return orm.Post.forge(props).save({uuid: post.id})
-      } else {
-        console.log(`Update existing post ${post.body}`)
-        return p.save(props, {patch: true})
-      }
+      console.log(`15000 posts saved`)
+      return true
     })
-    console.log(`Posts saved`)
-    return true
-  })
-  console.log(`Timelines saved`)
+    console.log(`Timeline ${t.id} posts saved`)
+  }
 
   console.log('Done.')
   process.exit()
 }
 
-run().catch(function(e) { console.log(`Error: ${e}`) })
+run().catch(function(e) {
+  console.log(`Error: ${e}`)
+  console.log(e.stack)
+  process.exit()
+})

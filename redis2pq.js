@@ -17,7 +17,7 @@ function randomDate(start, end) {
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-let makePost = async function(idx, body, userId) {
+let makePost = async function(idx, body, userId, t) {
   let props = {
     body: `#${idx} copy of ${body}`,
     user_uuid: userId,
@@ -25,7 +25,7 @@ let makePost = async function(idx, body, userId) {
   }
   let id = uuid.v4()
   // console.log(`Save a new post ${props.body} as ${id}`)
-  return orm.Post.forge(props).save({uuid: id})
+  return orm.Post.forge(props).save({uuid: id}, {transacting: t})
 }
 
 let run = async function() {
@@ -54,43 +54,60 @@ let run = async function() {
       bans: []
     }
     if (!u) {
-      console.log(`Save a new user ${user.username}`)
-      return orm.User.forge(props).save({uuid: user.id})
+      await orm.User.forge(props).save({uuid: user.id})
     } else {
-      console.log(`Update existing user ${user.username}`)
-      return u.save(props, {patch: true})
+      await u.save(props, {patch: true})
     }
-  })
-  console.log(`Users saved`)
-
-  for (let timeline of timelines) {
+//
+    var timeline = await user.getPostsTimeline()
     var t = await orm.Timeline.forge({uuid: timeline.id}).fetch()
     var props = {
-      type: 'Posts'
+      type: 'Posts',
+      user_uuid: user.id
     }
     if (!t) {
-      console.log(`Save a new timeline ${timeline.id}`)
-      await orm.Timeline.forge(props).save({uuid: timeline.id})
+      return orm.Timeline.forge(props).save({uuid: timeline.id})
     } else {
-      console.log(`Update existing timeline ${timeline.id}`)
-      await t.save(props, {patch: true})
+      return t.save(props, {patch: true})
     }
-    console.log(`Timeline ${t.id} saved`)
+//
+  })
 
-    let posts = await timeline.getPosts(0, 10000000)
-    console.log(`Save timeline ${t.id} posts (${posts.length} posts found)`)
-    await* posts.map(async function(post) {
-      var u = await orm.User.forge({uuid: post.userId}).fetch()
-      // Generate 15000 new posts per source post
-      // Adjust UUID and posting date
-      for (let x of _.range(15000)) {
-        await makePost(x+1, post.body, u.id)
-      }
-      console.log(`15000 posts saved`)
-      return true
-    })
-    console.log(`Timeline ${t.id} posts saved`)
-  }
+  // for (let timeline of timelines) {
+  //   var t = await orm.Timeline.forge({uuid: timeline.id}).fetch()
+  //   var props = {
+  //     type: 'Posts'
+  //   }
+  //   if (!t) {
+  //     await orm.Timeline.forge(props).save({uuid: timeline.id})
+  //   } else {
+  //     await t.save(props, {patch: true})
+  //   }
+
+    // let posts = await timeline.getPosts(0, 10000000)
+    // console.log(`Save timeline ${t.id} posts (${posts.length} posts found)`)
+
+    // orm.Bookshelf.transaction(async function(trx) {
+    //   try {
+    //     await* posts.map(async function(post) {
+    //       var u = await orm.User.forge({uuid: post.userId}).fetch()
+    //       // Generate 15000 new posts per source post
+    //       // Adjust UUID and posting date
+    //       for (let x of _.range(15000)) {
+    //         await makePost(x+1, post.body, u.id, trx)
+    //       }
+    //       console.log(`15000 posts saved`)
+    //       return true
+    //     })
+    //     console.log(`Timeline ${t.id} posts saved`)
+    //   } catch(e) {
+    //     trx.rollback()
+    //   }
+    // }).catch(function(e) {
+    //   console.log(`Transaction Error: ${e}`)
+    //   console.log(e.stack)
+    // })
+  // }
 
   console.log('Done.')
   process.exit()

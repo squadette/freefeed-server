@@ -49,6 +49,7 @@ exports.addModel = function(database) {
     if (parseInt(params.updatedAt, 10))
       this.updatedAt = params.updatedAt
     this.type = "user"
+    this.unreadDirects = params.unreadDirects || []
 
     this.profilePictureUuid = params.profilePictureUuid || ''
 
@@ -104,6 +105,15 @@ exports.addModel = function(database) {
     get: function() { return this.isPrivate_ },
     set: function(newValue) {
       this.isPrivate_ = newValue || '0'
+    }
+  })
+
+  Object.defineProperty(User.prototype, 'unreadDirects', {
+    get: function() { return this.unreadDirects_ },
+    set: function(newValue) {
+      if (!_.isArray(newValue))
+        newValue = [newValue]
+      this.unreadDirects_ = newValue.filter(Boolean)
     }
   })
 

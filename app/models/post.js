@@ -377,6 +377,7 @@ exports.addModel = function(database) {
   }
 
   Post.prototype.addComment = async function(comment) {
+    var timer = monitor.timer('posts.comment-time')
     let user = await models.User.findById(comment.userId)
 
     let subscriberIds = await user.getSubscriberIds()
@@ -396,6 +397,7 @@ exports.addModel = function(database) {
     promises.push(pubSub.newComment(comment, timelines))
 
     await* promises
+    timer.stop()
 
     return timelines
   }
@@ -547,6 +549,7 @@ exports.addModel = function(database) {
                     that.likeIds = that.likeIds.sort(function(a, b) {
                       if (a == that.currentUser) return -1
                       if (b == that.currentUser) return 1
+                      //todo: return something?
                     })
                   }
                 }
@@ -637,6 +640,7 @@ exports.addModel = function(database) {
   Post.prototype.addLike = async function(user) {
     await user.validateCanLikePost(this)
 
+    var timer = monitor.timer('posts.like-time')
     let subscriberIds = await user.getSubscriberIds()
     let bannedIds = await user.getBanIds()
     let timelines = await this.getLikesFriendOfFriendTimelines(user)
@@ -656,6 +660,7 @@ exports.addModel = function(database) {
 
     await* promises
 
+    timer.stop()
     monitor.increment('posts.likes')
     monitor.increment('posts.reactions')
 
@@ -669,9 +674,9 @@ exports.addModel = function(database) {
     await* [
             database.zremAsync(mkKey(['post', this.id, 'likes']), userId),
             database.zremAsync(mkKey(['timeline', timelineId, 'posts']), this.id),
-            database.sremAsync(mkKey(['post', this.id, 'timelines']), timelineId)
+            database.sremAsync(mkKey(['post', this.id, 'timelines']), timelineId),
+            pubSub.removeLike(this.id, userId)
           ]
-    await pubSub.removeLike(this.id, userId)
 
     monitor.increment('posts.unlikes')
     monitor.increment('posts.unreactions')
@@ -684,15 +689,10 @@ exports.addModel = function(database) {
     return models.FeedFactory.findById(this.userId)
   }
 
-  Post.prototype.isBannedFor = function(userId) {
-    var that = this
-
-    return new Promise(function(resolve, reject) {
-      models.User.findById(userId)
-        .then(function(user) { return user.getBanIds() })
-        .then(function(banIds) { return banIds.indexOf(that.userId) })
-        .then(function(index) { resolve(index >= 0) })
-    })
+  Post.prototype.isBannedFor = async function(userId) {
+    let user = await models.User.findById(userId)
+    let banIds = await user.getBanIds()
+    return banIds.indexOf(this.userId) >= 0
   }
 
   Post.prototype.isHiddenIn = async function(timeline) {

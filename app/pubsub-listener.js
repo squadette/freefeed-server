@@ -8,6 +8,8 @@ import jwt from 'jsonwebtoken'
 import models from './models'
 import config_loader from '../config/config'
 
+// REDIS PUBSUB-TO-SOCKETIO forwarding
+
 export default class PubsubListener {
   constructor(server, app) {
     this.app = app
@@ -33,7 +35,9 @@ export default class PubsubListener {
     redisClient.on('error', function(err) { console.log(err) })
     redisClient.subscribe('post:new', 'post:destroy', 'post:update',
       'comment:new', 'comment:destroy', 'comment:update',
-      'like:new', 'like:remove', 'post:hide', 'post:unhide')
+      'like:new', 'like:remove', 'post:hide', 'post:unhide',
+      'direct:new', 'direct:clear', 'subscription:new',
+      'subscription:accepted')
 
     redisClient.on('message', this.onRedisMessage.bind(this))
   }
@@ -94,7 +98,12 @@ export default class PubsubListener {
       'comment:destroy':  this.onCommentDestroy.bind(this),
 
       'like:new':         this.onLikeNew.bind(this),
-      'like:remove':      this.onLikeRemove.bind(this)
+      'like:remove':      this.onLikeRemove.bind(this),
+
+      'direct:new':            this.onNewDirect.bind(this),
+      'direct:clear':          this.onClearDirect.bind(this),
+      'subscription:new':      this.onNewSubscription.bind(this),
+      'subscription:accepted': this.onAcceptedSubscription.bind(this)
     }
 
     messageRoutes[channel](
@@ -117,21 +126,6 @@ export default class PubsubListener {
   }
 
   // Message-handlers follow
-  async onPostDestroy(sockets, data) {
-    let post = await models.Post.findById(data.postId)
-    let json = { meta: { postId: data.postId } }
-
-    sockets.in('timeline:' + data.timelineId).emit('post:destroy', json)
-    sockets.in('post:' + data.postId).emit('post:destroy', json)
-
-    let type = 'post:destroy'
-    let room = `timeline:${data.timelineId}`
-    await this.validateAndEmitMessage(sockets, room, type, json, post)
-
-    room = `post:${data.postId}`
-    await this.validateAndEmitMessage(sockets, room, type, json, post)
-  }
-
   async onPostNew(sockets, data) {
     let post = await models.Post.findById(data.postId)
     let json = await new models.PostSerializer(post).promiseToJSON()
@@ -155,6 +149,35 @@ export default class PubsubListener {
       room = `post:${data.postId}`
     }
     await this.validateAndEmitMessage(sockets, room, type, json, post)
+  }
+
+  async onPostDestroy(sockets, data) {
+    let post = await models.Post.findById(data.postId)
+    let json = { meta: { postId: data.postId } }
+
+    sockets.in('timeline:' + data.timelineId).emit('post:destroy', json)
+    sockets.in('post:' + data.postId).emit('post:destroy', json)
+
+    let type = 'post:destroy'
+    let room = `timeline:${data.timelineId}`
+    await this.validateAndEmitMessage(sockets, room, type, json, post)
+
+    room = `post:${data.postId}`
+    await this.validateAndEmitMessage(sockets, room, type, json, post)
+  }
+
+  async onPostHide(sockets, data) {
+    // NOTE: posts are hidden only on RiverOfNews timeline so this
+    // event won't leak any personal information
+    let json = { meta: { postId: data.postId } }
+    sockets.in('timeline:' + data.timelineId).emit('post:hide', json)
+  }
+
+  async onPostUnhide(sockets, data) {
+    // NOTE: posts are hidden only on RiverOfNews timeline so this
+    // event won't leak any personal information
+    let json = { meta: { postId: data.postId } }
+    sockets.in('timeline:' + data.timelineId).emit('post:unhide', json)
   }
 
   async onCommentNew(sockets, data) {
@@ -194,7 +217,7 @@ export default class PubsubListener {
   async onCommentDestroy(sockets, data) {
     let json = { postId: data.postId, commentId: data.commentId }
     let post = await models.Post.findById(data.postId)
-    
+
     let type = 'comment:destroy'
     let room
     if (data.timelineId) {
@@ -238,17 +261,38 @@ export default class PubsubListener {
     await this.validateAndEmitMessage(sockets, room, type, json, post)
   }
 
-  async onPostHide(sockets, data) {
-    // NOTE: posts are hidden only on RiverOfNews timeline so this
-    // event won't leak any personal information
-    let json = { meta: { postId: data.postId } }
-    sockets.in('timeline:' + data.timelineId).emit('post:hide', json)
+  async onNewDirect(sockets, data) {
+    let json = { meta: { timelineId: data.timelineId, postId: data.postId } }
+    let post = await models.Post.findById(data.postId)
+
+    let type = 'direct:new'
+    let room = 'myinfo'
+    await this.validateAndEmitMessage(sockets, room, type, json, post)
   }
 
-  async onPostUnhide(sockets, data) {
-    // NOTE: posts are hidden only on RiverOfNews timeline so this
-    // event won't leak any personal information
-    let json = { meta: { postId: data.postId } }
-    sockets.in('timeline:' + data.timelineId).emit('post:unhide', json)
+  // clear direct must come first from the frontend indicating READ state
+  async onClearDirect(sockets, data) {
+    let json = { meta: { userId: data.userId, postId: data.postId } }
+    let post = await models.Post.findById(data.postId)
+
+    let type = 'direct:clear'
+    let room = 'myinfo'
+    await this.validateAndEmitMessage(sockets, room, type, json, post)
+  }
+
+  // new subscription is coming from REQUESTING user to RECIPIENT user
+  // here notification is sent to RECIPIENT user
+  async onNewSubscription(sockets, data) {
+    let json = { meta: { userId: data.userId } }
+    let type = 'subscription:new'
+    let room = 'myinfo'
+    await this.validateAndEmitMessage(sockets, room, type, json, post)
+  }
+
+  async onAcceptedSubscription(sockets, data) {
+    let json = { meta: { userId: data.userId } }
+    let type = 'subscription:accepted'
+    let room = 'myinfo'
+    await this.validateAndEmitMessage(sockets, room, type, json, post)
   }
 }

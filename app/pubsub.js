@@ -1,5 +1,7 @@
 import models from './models'
 
+// BACKEND TO REDIS publishing
+
 export default class pubSub {
   constructor(database) {
     this.database = database
@@ -139,5 +141,18 @@ export default class pubSub {
 
     var payload = JSON.stringify({ timelineId: riverOfNewsId, postId: postId })
     await this.database.publishAsync('post:unhide', payload)
+  }
+
+  // Post postId was posted to Direct timelines.
+  async newDirectPost(timelines, postId) {
+    await* timelines.map(async (timeline) => {
+      let payload = JSON.stringify({ timelineId: timeline.id, postId: postId })
+      await this.database.publishAsync('direct:new', payload)
+    })
+  }
+  // User userId has read all his direct posts.
+  async clearDirectPosts(userId) {
+    var payload = JSON.stringify({ userId: userId })
+    await this.database.publishAsync('direct:clear', payload)
   }
 }

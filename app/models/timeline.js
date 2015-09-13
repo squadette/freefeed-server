@@ -52,6 +52,7 @@ exports.addModel = function(database) {
   Timeline.publishPost = function(post) {
     var that = this
     var currentTime = new Date().getTime()
+    var directs = []
 
     // We can use post.timelineIds here instead of post.getPostedToIds
     // because we are about to create that post and have just received
@@ -69,6 +70,7 @@ exports.addModel = function(database) {
       .then(function(allSubscribedTimelineIds) {
         var allTimelines = _.uniq(
           _.union(post.timelineIds, _.flatten(allSubscribedTimelineIds)))
+        directs = allTimelines.filter((timeline) => timeline.isDirects)
         return Promise.map(allTimelines, function(timelineId) {
           return Promise.all([
             database.zaddAsync(mkKey(['timeline', timelineId, 'posts']), currentTime, post.id),
@@ -78,6 +80,7 @@ exports.addModel = function(database) {
         })
       })
       .then(function() { return pubSub.newPost(post.id) })
+      .then(function() { return pubSub.newDirectPost(directs, post.id) })
   }
 
   Timeline.prototype.validate = function() {

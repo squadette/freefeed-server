@@ -7,7 +7,7 @@ exports.addSerializer = function() {
     select: ['id', 'username', 'type', 'screenName', 'statistics',
              'profilePictureLargeUrl', 'profilePictureMediumUrl',
              'updatedAt', 'isPrivate',
-             'administrators'],
+             'administrators', 'unreadDirects'],
     administrators: { through: AdminSerializer, embed: true }
   })
 }

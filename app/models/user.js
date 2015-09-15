@@ -268,7 +268,7 @@ exports.addModel = function(database) {
   //
   User.prototype.createEmailIndex = function() {
     // email is optional, so no need to index an empty key
-    if (this.email && this.email.length > 0) {
+    if (this.email && this.email.length > 0) { // @todo lowercase the email!
       return database.setAsync(mkKey(['email', this.email, 'uid']), this.id)
     }
     return new Promise.resolve(true)

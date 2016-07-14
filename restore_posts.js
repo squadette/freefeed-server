@@ -11,31 +11,31 @@ const mysql = knexjs(mysql_config)
 
 const START_DATE = '2016-04-26 00:00:00'
 
-function timestampToDateStr(timestamp){
-  let d = new Date()
+function timestampToDateStr(timestamp) {
+  const d = new Date()
   d.setTime(timestamp)
   return d.toISOString()
 }
 
-async function getPostApiResponse(postUUID){
+async function getPostApiResponse(postUUID) {
   const res = await mysql('freefeed_urls').select('body').where('url', '=', `/v1/posts/${postUUID}?maxComments=all`)
   const savedApiResponse = res[0].body
   return JSON.parse(savedApiResponse)
 }
 
-async function postExist(postUUID){
+async function postExist(postUUID) {
   const res = await postgres('posts').where('uid', postUUID)
-  let attrs = res[0]
+  const attrs = res[0]
 
   return !!attrs
 }
 
-async function createPost(savedPostData, postJson){
-  let post = {
-    uid:        savedPostData.uuid,
-    body:       savedPostData.body,
-    created_at: savedPostData.createdat,
-    updated_at: savedPostData.updatedat,
+async function createPost(savedPostData, postJson) {
+  const post = {
+    uid:               savedPostData.uuid,
+    body:              savedPostData.body,
+    created_at:        savedPostData.createdat,
+    updated_at:        savedPostData.updatedat,
     comments_disabled: postJson.commentsDisabled === '1',
     user_id:           postJson.createdBy
   }
@@ -46,8 +46,8 @@ async function createPost(savedPostData, postJson){
   return postgres('posts').insert(post)
 }
 
-async function createComment(postUUID, commentJson){
-  let comment = {
+async function createComment(postUUID, commentJson) {
+  const comment = {
     uid:        commentJson.id,
     body:       commentJson.body,
     created_at: timestampToDateStr(commentJson.createdAt),
@@ -60,23 +60,23 @@ async function createComment(postUUID, commentJson){
 }
 
 
-async function createPostComments(postUUID, payload){
-  let commentsDescr = payload.comments
-  if (!commentsDescr){
+async function createPostComments(postUUID, payload) {
+  const commentsDescr = payload.comments
+  if (!commentsDescr) {
     return
   }
 
   //console.log(commentsDescr)
-  for (let comment of commentsDescr){
+  for (const comment of commentsDescr) {
     await createComment(postUUID, comment)
     await publishPostAfterComment(postUUID, comment.createdBy)
   }
 }
 
-async function createLike(postUUID, postCreatedAt, userUUID){
-  let like = {
-    post_id: postUUID,
-    user_id: userUUID,
+async function createLike(postUUID, postCreatedAt, userUUID) {
+  const like = {
+    post_id:    postUUID,
+    user_id:    userUUID,
     created_at: postCreatedAt
   }
 
@@ -84,30 +84,30 @@ async function createLike(postUUID, postCreatedAt, userUUID){
 }
 
 
-async function createPostLikes(postUUID, payload){
-  let likes = payload.posts.likes
-  let postCreatedAt = timestampToDateStr(payload.posts.createdAt)
-  if (!likes){
+async function createPostLikes(postUUID, payload) {
+  const likes = payload.posts.likes
+  const postCreatedAt = timestampToDateStr(payload.posts.createdAt)
+  if (!likes) {
     return
   }
 
   //console.log(likes)
-  for (let userUUID of likes){
+  for (const userUUID of likes) {
     await createLike(postUUID, postCreatedAt, userUUID)
     await publishPostAfterLike(postUUID, userUUID)
   }
 }
 
-async function createAttachment(postUUID, attachmentJson){
+async function createAttachment(postUUID, attachmentJson) {
   const url = attachmentJson.url
-  let fileExt = url.substr(url.lastIndexOf('.') + 1)
-  let attachment = {
+  const fileExt = url.substr(url.lastIndexOf('.') + 1)
+  const attachment = {
     uid:            attachmentJson.id,
     created_at:     timestampToDateStr(attachmentJson.createdAt),
     updated_at:     timestampToDateStr(attachmentJson.updatedAt),
     file_name:      attachmentJson.fileName,
     file_size:      attachmentJson.fileSize,
-    mime_type:      "",
+    mime_type:      '',
     media_type:     attachmentJson.mediaType,
     file_extension: fileExt,
     no_thumbnail:   true,
@@ -122,57 +122,57 @@ async function createAttachment(postUUID, attachmentJson){
 }
 
 
-async function createPostAttachments(postUUID, payload){
-  let attachmentsDescr = payload.attachments
-  if (!attachmentsDescr){
+async function createPostAttachments(postUUID, payload) {
+  const attachmentsDescr = payload.attachments
+  if (!attachmentsDescr) {
     return
   }
 
   //console.log(attachmentsDescr)
-  for (let attachment of attachmentsDescr){
+  for (const attachment of attachmentsDescr) {
     await createAttachment(postUUID, attachment)
   }
 }
 
-async function publishPost(postUUID){
-  let post = await dbAdapter.getPostById(postUUID)
+async function publishPost(postUUID) {
+  const post = await dbAdapter.getPostById(postUUID)
   //console.log(post)
 
   return Timeline._republishPost(post)
 }
 
 
-async function publishPostAfterComment(postUUID, commenterUserId){
-  let post = await dbAdapter.getPostById(postUUID)
-  let user = await dbAdapter.getUserById(commenterUserId)
+async function publishPostAfterComment(postUUID, commenterUserId) {
+  const post = await dbAdapter.getPostById(postUUID)
+  const user = await dbAdapter.getUserById(commenterUserId)
 
   let timelineIntIds = post.destinationFeedIds.slice()
 
-  let moreTimelineIntIds = await post.getCommentsFriendOfFriendTimelineIntIds(user)
+  const moreTimelineIntIds = await post.getCommentsFriendOfFriendTimelineIntIds(user)
   timelineIntIds.push(...moreTimelineIntIds)
 
   timelineIntIds = _.uniq(timelineIntIds)
 
   let timelines = await dbAdapter.getTimelinesByIntIds(timelineIntIds)
 
-  let bannedIds = await user.getBanIds()
+  const bannedIds = await user.getBanIds()
   timelines = timelines.filter((timeline) => !(timeline.userId in bannedIds))
 
-  let feedsIntIds = timelines.map((t)=> t.intId)
-  let insertIntoFeedIds = _.difference(feedsIntIds, post.feedIntIds)
+  const feedsIntIds = timelines.map((t) => t.intId)
+  const insertIntoFeedIds = _.difference(feedsIntIds, post.feedIntIds)
 
   if (insertIntoFeedIds.length > 0) {
     await dbAdapter.insertPostIntoFeeds(insertIntoFeedIds, postUUID)
   }
 }
 
-async function publishPostAfterLike(postUUID, likerUserId){
-  let post = await dbAdapter.getPostById(postUUID)
-  let user = await dbAdapter.getUserById(likerUserId)
+async function publishPostAfterLike(postUUID, likerUserId) {
+  const post = await dbAdapter.getPostById(postUUID)
+  const user = await dbAdapter.getUserById(likerUserId)
 
   let timelineIntIds = post.destinationFeedIds.slice()
 
-  let moreTimelineIntIds = await post.getLikesFriendOfFriendTimelineIntIds(user)
+  const moreTimelineIntIds = await post.getLikesFriendOfFriendTimelineIntIds(user)
   timelineIntIds.push(...moreTimelineIntIds)
 
   timelineIntIds = _.uniq(timelineIntIds)
@@ -180,11 +180,11 @@ async function publishPostAfterLike(postUUID, likerUserId){
   let timelines = await dbAdapter.getTimelinesByIntIds(timelineIntIds)
 
   // no need to post updates to rivers of banned users
-  let bannedIds = await user.getBanIds()
+  const bannedIds = await user.getBanIds()
   timelines = timelines.filter((timeline) => !(timeline.userId in bannedIds))
 
-  let feedsIntIds = timelines.map((t)=> t.intId)
-  let insertIntoFeedIds = _.difference(feedsIntIds, post.feedIntIds)
+  const feedsIntIds = timelines.map((t) => t.intId)
+  const insertIntoFeedIds = _.difference(feedsIntIds, post.feedIntIds)
 
   if (insertIntoFeedIds.length > 0) {
     await dbAdapter.insertPostIntoFeeds(insertIntoFeedIds, post.id)
@@ -192,11 +192,11 @@ async function publishPostAfterLike(postUUID, likerUserId){
 }
 
 
-async function processPost(savedPostData, currentPost, postsCount){
+async function processPost(savedPostData, currentPost, postsCount) {
   const postUUID = savedPostData.uuid
-  try{
+  try {
     const exist = await postExist(postUUID)
-    if(exist){
+    if (exist) {
       return
     }
 
@@ -204,7 +204,7 @@ async function processPost(savedPostData, currentPost, postsCount){
 
     const apiPostResponse = await getPostApiResponse(postUUID)
 
-    if(!apiPostResponse || apiPostResponse.err){
+    if (!apiPostResponse || apiPostResponse.err) {
       console.log('No response for post', postUUID)
       return
     }
@@ -218,28 +218,27 @@ async function processPost(savedPostData, currentPost, postsCount){
     await createPostLikes(postUUID, apiPostResponse)
 
     await createPostAttachments(postUUID, apiPostResponse)
-
   } catch (e) {
-    console.log("-------------------------------------------------------")
+    console.log('-------------------------------------------------------')
     console.log(e)
-    console.log("-------------------------------------------------------")
+    console.log('-------------------------------------------------------')
   }
 }
 
-async function main(){
-  console.log("Started")
-  let newPosts = await mysql('freefeed_posts').where('createdat', '>', START_DATE)
+async function main() {
+  console.log('Started')
+  const newPosts = await mysql('freefeed_posts').where('createdat', '>', START_DATE)
 
   const postsCount = newPosts.length
   let currentPost = 1
 
-  for (let p of newPosts){
+  for (const p of newPosts) {
     await processPost(p, currentPost, postsCount)
     currentPost += 1
   }
 }
 
-main().then(()=> {
-  console.log("Finished")
+main().then(() => {
+  console.log('Finished')
   process.exit(0)
 })

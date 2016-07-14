@@ -11,78 +11,75 @@ const mysql = knexjs(mysql_config)
 
 const START_DATE = '2016-04-26 00:00:00'
 
-async function getPostApiResponse(postUUID){
+async function getPostApiResponse(postUUID) {
   const res = await mysql('freefeed_urls').select('body').where('url', '=', `/v1/posts/${postUUID}?maxComments=all`)
   const savedApiResponse = res[0].body
   return JSON.parse(savedApiResponse)
 }
 
-async function fixAttachment(postUUID, attachmentJson, authorName){
+async function fixAttachment(postUUID, attachmentJson, authorName) {
   const wrongExtensions = ['jpeg', 'JPG', 'PNG', 'GIF']
-  const fileName = attachmentJson.fileName || ""
-  let wrongFileExt = fileName.substr(fileName.lastIndexOf('.') + 1);
-  let newFileExt = attachmentJson.url.substr(attachmentJson.url.lastIndexOf('.') + 1);
+  const fileName = attachmentJson.fileName || ''
+  const wrongFileExt = fileName.substr(fileName.lastIndexOf('.') + 1);
+  const newFileExt = attachmentJson.url.substr(attachmentJson.url.lastIndexOf('.') + 1);
 
-  if(!_.includes(wrongExtensions, wrongFileExt)){
+  if (!_.includes(wrongExtensions, wrongFileExt)) {
     return
   }
 
   console.log('Fix attachment of post', postUUID, `(${authorName})`)
 
-  const attachment = {
-    file_extension: newFileExt
-  }
+  const attachment = { file_extension: newFileExt }
 
-  return postgres('attachments').where('uid', attachmentJson.id).update(attachment)
+  await postgres('attachments').where('uid', attachmentJson.id).update(attachment)
 }
 
 
-async function fixPostAttachments(postUUID, payload){
-  let attachmentsDescr = payload.attachments
-  if (!attachmentsDescr){
+async function fixPostAttachments(postUUID, payload) {
+  const attachmentsDescr = payload.attachments
+  if (!attachmentsDescr) {
     return
   }
 
   const postAuthorId = payload.posts.createdBy
-  const author = _.find(payload.users, (u)=>{
+  const author = _.find(payload.users, (u) => {
     return u.id == postAuthorId
   })
-  const authorUsername = author ? author.username : "-"
+  const authorUsername = author ? author.username : '-'
 
-  for (let attachment of attachmentsDescr){
+  for (const attachment of attachmentsDescr) {
     await fixAttachment(postUUID, attachment, authorUsername)
   }
 }
 
-async function processPost(savedPostData){
+async function processPost(savedPostData) {
   const postUUID = savedPostData.uuid
-  try{
+  try {
     const apiPostResponse = await getPostApiResponse(postUUID)
 
-    if(!apiPostResponse || apiPostResponse.err){
+    if (!apiPostResponse || apiPostResponse.err) {
       console.log('No response for post', postUUID)
       return
     }
 
     await fixPostAttachments(postUUID, apiPostResponse)
-
   } catch (e) {
-    console.log("-------------------------------------------------------")
+    console.log('-------------------------------------------------------')
     console.log(e)
-    console.log("-------------------------------------------------------")
+    console.log('-------------------------------------------------------')
   }
 }
 
-async function main(){
-  console.log("Started")
-  let newPosts = await mysql('freefeed_posts').where('createdat', '>', START_DATE)
+async function main() {
+  console.log('Started')
+  const newPosts = await mysql('freefeed_posts').where('createdat', '>', START_DATE)
 
-  for (let p of newPosts){
+  for (const p of newPosts) {
     await processPost(p)
   }
 }
 
-main().then(()=> {
-  console.log("Finished")
+main().then(() => {
+  console.log('Finished')
   process.exit(0)
 })

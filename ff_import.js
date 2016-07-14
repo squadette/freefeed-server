@@ -120,7 +120,7 @@ async function main() {
   }
 
   for (const fns of chunk(files, 10)) {
-    await Promise.all(fns.map(fn => processFile(fn, currentFile++)));
+    await Promise.all(fns.map((fn) => processFile(fn, currentFile++)));
   }
 }
 

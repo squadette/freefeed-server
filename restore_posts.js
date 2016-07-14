@@ -191,54 +191,67 @@ async function publishPostAfterLike(postUUID, likerUserId) {
   }
 }
 
+let numberOfSkippedPosts = 0;
+let numberOfProcessedPosts = 0;
+let numberOfFailedPosts = 0;
 
-async function processPost(savedPostData, currentPost, postsCount) {
+const logRow = (uuid, action) => {
+  process.stdout.write(`uuid=[${uuid}]: ${action} (done=${_.pad(numberOfProcessedPosts, 5, 0)}, skip=${_.pad(numberOfSkippedPosts, 5, 0)}, fail=${_.pad(numberOfFailedPosts, 5, 0)})\n`);
+}
+
+async function processPost(savedPostData) {
   const postUUID = savedPostData.uuid
+
   try {
-    const exist = await postExist(postUUID)
-    if (exist) {
+    const exists = await postExist(postUUID)
+    if (exists) {
+      numberOfSkippedPosts += 1;
+      logRow(postUUID, 'SKIP');
       return
     }
-
-    console.log(`Processing post (${currentPost} of ${postsCount})`, postUUID)
 
     const apiPostResponse = await getPostApiResponse(postUUID)
 
     if (!apiPostResponse || apiPostResponse.err) {
-      console.log('No response for post', postUUID)
+      numberOfSkippedPosts += 1;
+      logRow(postUUID, 'SKIP');
+      process.stderr.write(`-> No response for post ${postUUID}\n`)
       return
     }
 
     await createPost(savedPostData, apiPostResponse.posts)
-
     await publishPost(postUUID)
 
     await createPostComments(postUUID, apiPostResponse)
-
     await createPostLikes(postUUID, apiPostResponse)
-
     await createPostAttachments(postUUID, apiPostResponse)
+
+    numberOfProcessedPosts += 1;
+    logRow(postUUID, 'SUCCESS');
   } catch (e) {
-    console.log('-------------------------------------------------------')
-    console.log(e)
-    console.log('-------------------------------------------------------')
+    numberOfFailedPosts += 1;
+    logRow(postUUID, 'FAIL');
+
+    process.stderr.write(`-> Failed to process post ${postUUID}: ${e.message}\n`)
   }
 }
 
 async function main() {
-  console.log('Started')
   const newPosts = await mysql('freefeed_posts').where('createdat', '>', START_DATE)
 
   const postsCount = newPosts.length
-  let currentPost = 1
+  process.stdout.write(`Total number of posts in MySQL archive: ${postsCount}\n`);
 
   for (const p of newPosts) {
-    await processPost(p, currentPost, postsCount)
-    currentPost += 1
+    await processPost(p)
   }
 }
 
-main().then(() => {
-  console.log('Finished')
-  process.exit(0)
-})
+main()
+  .then(() => {
+    process.exit(0)
+  })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })

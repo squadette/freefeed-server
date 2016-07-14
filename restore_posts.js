@@ -196,7 +196,7 @@ let numberOfProcessedPosts = 0;
 let numberOfFailedPosts = 0;
 
 const logRow = (uuid, action) => {
-  process.stdout.write(`uuid=[${uuid}]: ${action} (done=${_.pad(numberOfProcessedPosts, 5, 0)}, skip=${_.pad(numberOfSkippedPosts, 5, 0)}, fail=${_.pad(numberOfFailedPosts, 5, 0)})\n`);
+  process.stdout.write(`uuid=[${uuid}]: ${action} (done=${_.padStart(numberOfProcessedPosts, 5, 0)}, skip=${_.padStart(numberOfSkippedPosts, 5, 0)}, fail=${_.padStart(numberOfFailedPosts, 5, 0)})\n`);
 }
 
 async function processPost(savedPostData) {

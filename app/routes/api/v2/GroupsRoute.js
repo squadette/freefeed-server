@@ -1,7 +1,7 @@
-import { GroupsControllerV2 } from '../../../controllers'
+       {                  2 }      '../../../           '
 
 
-export default function addRoutes(app) {
-  app.get('/v2/managedGroups', GroupsControllerV2.managedGroups)
-  app.get('/v2/allGroups', GroupsControllerV2.allGroups)
+                                 (   ) {
+     .   ('/ 2/             ',                  2.             )
+     .   ('/ 2/         ',                  2.         )
 }

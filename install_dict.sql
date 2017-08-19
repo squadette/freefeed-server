@@ -1,21 +1,21 @@
-CREATE TEXT SEARCH DICTIONARY ispell_ru (
-  template  =   ispell,
-  dictfile  =   ru,
-  afffile   =   ru,
-  stopwords =   russian
+                                    _   (
+            =         ,
+            =     ,
+            =     ,
+            =          
 );
 
-CREATE TEXT SEARCH DICTIONARY ispell_en (
-    template  = ispell,
-    dictfile  = en,
-    afffile   = en,
-    stopwords = english
+                                    _   (
+              =       ,
+              =   ,
+              =   ,
+              =        
 );
 
-CREATE TEXT SEARCH CONFIGURATION ff_search_config ( COPY = russian );
+                                   _      _       (      =         );
 
-ALTER TEXT SEARCH CONFIGURATION ff_search_config ALTER MAPPING FOR word, hword, hword_part WITH ispell_ru, russian_stem;
+                                  _      _                             ,      ,      _                _  ,        _    ;
 
-ALTER TEXT SEARCH CONFIGURATION ff_search_config ALTER MAPPING FOR asciiword, asciihword, hword_asciipart WITH ispell_en, english_stem;
+                                  _      _                                  ,           ,      _                     _  ,        _    ;
 
-SET default_text_search_config = 'ff_search_config';
+           _    _      _       = '  _      _      ';

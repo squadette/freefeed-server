@@ -1,80 +1,80 @@
-// Update with your config settings.
+//                                 .
 
-try {
-  require('babel-register');
-  require('babel-polyfill');
-} catch (e) {
-  // it's ok. might be already enabled
+    {
+         ('     -        ');
+         ('     -        ');
+}       ( ) {
+  //   '    .                         
 }
 
-module.exports = {
+      .        = {
 
-  development: {
-    client: 'postgresql',
-    connection: {
-      database: 'freefeed',
-      user:     'freefeed',
-      password: 'freefeed'
+             : {
+          : '          ',
+              : {
+              : '        ',
+          :     '        ',
+              : '        '
     },
-    pool: {
-      min: 2,
-      max: 10
+        : {
+         : 2,
+         : 10
     },
-    migrations: {
-      tableName: 'knex_migrations'
+              : {
+               : '    _          '
     },
-    textSearchConfigName: 'pg_catalog.russian'
+                        : '  _       .       '
   },
 
-  test: {
-    client: 'postgresql',
-    connection: {
-      database: 'freefeed_test',
-      user:     'postgres',
-      password: ''
+      : {
+          : '          ',
+              : {
+              : '        _    ',
+          :     '        ',
+              : ''
     },
-    pool: {
-      min: 2,
-      max: 10
+        : {
+         : 2,
+         : 10
     },
-    migrations: {
-      tableName: 'knex_migrations'
+              : {
+               : '    _          '
     },
-    textSearchConfigName: 'pg_catalog.russian'
+                        : '  _       .       '
   },
 
-  staging: {
-    client: 'postgresql',
-    connection: {
-      database: 'my_db',
-      user:     'username',
-      password: 'password'
+         : {
+          : '          ',
+              : {
+              : '  _  ',
+          :     '        ',
+              : '        '
     },
-    pool: {
-      min: 2,
-      max: 10
+        : {
+         : 2,
+         : 10
     },
-    migrations: {
-      tableName: 'knex_migrations'
+              : {
+               : '    _          '
     },
-    textSearchConfigName: 'pg_catalog.russian'
+                        : '  _       .       '
   },
 
-  production: {
-    client: 'postgresql',
-    connection: {
-      database: 'my_db',
-      user:     'username',
-      password: 'password'
+            : {
+          : '          ',
+              : {
+              : '  _  ',
+          :     '        ',
+              : '        '
     },
-    pool: {
-      min: 2,
-      max: 10
+        : {
+         : 2,
+         : 10
     },
-    migrations: {
-      tableName: 'knex_migrations'
+              : {
+               : '    _          '
     },
-    textSearchConfigName: 'pg_catalog.russian'
+                        : '  _       .       '
   }
 
 };

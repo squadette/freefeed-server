@@ -1,1 +1,1 @@
-sRGB.icm is from ArgyllCMS (http://argyllcms.com/), see license in ArgyllCMS_LICENSE.txt  
+    .                      (    ://         .   /),                         _       .     

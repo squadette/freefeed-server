@@ -1,11 +1,11 @@
-import { UsersControllerV2 } from '../../../controllers'
+       {                 2 }      '../../../           '
 
 
-export default function addRoutes(app) {
-  app.get('/v2/users/blockedByMe', UsersControllerV2.blockedByMe)
-  app.get('/v2/users/getUnreadDirectsNumber', UsersControllerV2.getUnreadDirectsNumber)
-  app.get('/v2/users/getUnreadNotificationsNumber', UsersControllerV2.getUnreadNotificationsNumber);
-  app.get('/v2/users/markAllDirectsAsRead', UsersControllerV2.markAllDirectsAsRead)
-  app.post('/v2/users/markAllNotificationsAsRead', UsersControllerV2.markAllNotificationsAsRead);
-  app.get('/v2/users/whoami', UsersControllerV2.whoAmI)
+                                 (   ) {
+     .   ('/ 2/     /           ',                 2.           )
+     .   ('/ 2/     /                      ',                 2.                      )
+     .   ('/ 2/     /                            ',                 2.                            );
+     .   ('/ 2/     /                    ',                 2.                    )
+     .    ('/ 2/     /                          ',                 2.                          );
+     .   ('/ 2/     /      ',                 2.      )
 }

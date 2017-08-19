@@ -1,50 +1,50 @@
-import _ from 'lodash';
-import { AttachmentSerializer } from '../../../models';
-import { reportError } from '../../../support/exceptions';
+       _      '      ';
+       {                      }      '../../../      ';
+       {             }      '../../../       /          ';
 
 
-export default class AttachmentsController {
-  app = null
+                                           {
+      =     
 
-  constructor(app) {
-    this.app = app
+             (   ) {
+        .    =    
   }
 
-  create = async (ctx) => {
-    if (!ctx.state.user) {
-      ctx.status = 401;
-      ctx.body = { err: 'Not found' };
-      return
+         =       (   ) => {
+       (!   .     .    ) {
+         .       = 401;
+         .     = {    : '         ' };
+            
     }
 
-    const fileHandlerPromises = _.map(ctx.request.body.files, async (file) => {
-      try {
-        const newAttachment = await ctx.state.user.newAttachment({ file });
-        await newAttachment.create();
+                              = _.   (   .       .    .     ,       (    ) => {
+          {
+                            =          .     .    .             ({      });
+                           .      ();
 
-        const json = new AttachmentSerializer(newAttachment).promiseToJSON();
-        ctx.body = await json;
-      } catch (e) {
-        if (e.message && e.message.indexOf('Corrupt image') > -1) {
-          ctx.logger.warn(e.message);
+                   =                         (             ).             ();
+           .     =           ;
+      }       ( ) {
+           ( .        &&  .       .       ('             ') > -1) {
+             .      .    ( .       );
 
-          const errorDetails = { message: 'Corrupt image' }
-          reportError(ctx)(errorDetails);
-          return;
+                             = {        : '             ' }
+                     (   )(            );
+                ;
         }
 
-        if (e.message && e.message.indexOf('LCMS encoding') > -1) {
-          ctx.logger.warn(`GraphicsMagick should be configured with --with-lcms2 option`);
+           ( .        &&  .       .       ('             ') > -1) {
+             .      .    (`                                         --    -    2       `);
 
-          const errorDetails = { status: 500, message: 'Internal server error' }
-          reportError(ctx)(errorDetails);
-          return;
+                             = {       : 500,        : '                     ' }
+                     (   )(            );
+                ;
         }
 
-        reportError(ctx)(e);
+                   (   )( );
       }
     })
 
-    await Promise.all(fileHandlerPromises);
+                 .   (                   );
   }
 }

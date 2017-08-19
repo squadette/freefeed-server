@@ -1,6 +1,6 @@
-import { ArchivesStatsControllerV2 } from '../../../controllers'
+       {                         2 }      '../../../           '
 
 
-export default function addRoutes(app) {
-  app.get('/v2/archives-stats', ArchivesStatsControllerV2.stats);
+                                 (   ) {
+     .   ('/ 2/        -     ',                         2.     );
 }

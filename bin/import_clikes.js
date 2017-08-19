@@ -1,66 +1,66 @@
-#!/usr/bin/env babel-node
-import fs from 'fs';
-import bluebird from 'bluebird';
+#!/   /   /         -    
+               '  ';
+                     '        ';
 
-global.Promise = bluebird;
-global.Promise.onPossiblyUnhandledRejection((e) => { throw e; });
+      .        =         ;
+      .       .                            (( ) => {        ; });
 
-Promise.promisifyAll(fs);
+       .            (  );
 
-import { postgres, dbAdapter } from '../app/models'
+       {         ,           }      '../   /      '
 
-async function main() {
-  process.stdout.write(`Started\n`);
+                   () {
+         .      .     (`       \ `);
 
-  const dataFilePath = process.argv[2];
-  if (!dataFilePath) {
-    return;
+                     =        .     2 ;
+     (!            ) {
+          ;
   }
 
-  const file = await fs.readFileAsync(dataFilePath, 'utf8');
-  const clikesData = JSON.parse(file);
-  const clikesCount = clikesData.length;
+             =         .             (            , '   8');
+                   =     .     (    );
+                    =           .      ;
 
-  for (const i in clikesData) {
-    const clike = clikesData[i];
-    process.stdout.write(`Processing clikes: ${parseInt(i) + 1} of ${clikesCount}\r`);
-    const [commentId, userId] = await dbAdapter._getCommentAndUserIntId(clike.comment_id, clike.user_id);
+      (                     ) {
+                =              ;
+           .      .     (`                 : ${        ( ) + 1}    ${           }\ `);
+                    ,         =                ._                      (     .       _  ,      .    _  );
 
-    if (!commentId) {
-      process.stderr.write(`Can't find comment "${clike.comment_id}": SKIP\n`);
-      continue;
+       (!         ) {
+             .      .     (`   '               "${     .       _  }":     \ `);
+              ;
     }
 
-    if (!userId) {
-      process.stderr.write(`Can't find user "${clike.user_id}": SKIP\n`);
-      continue;
+       (!      ) {
+             .      .     (`   '            "${     .    _  }":     \ `);
+              ;
     }
 
-    const payload = {
-      comment_id: commentId,
-      user_id:    userId,
-      created_at: clike.date
+                  = {
+             _  :          ,
+          _  :          ,
+             _  :      .    
     };
 
-    try {
-      await postgres('comment_likes').insert(payload);
-    } catch (e) {
-      if (e.message.includes('duplicate key value')) {
-        continue;
+        {
+                    ('       _     ').      (       );
+    }       ( ) {
+         ( .       .        ('                   ')) {
+                ;
       }
 
-      throw e;
+             ;
     }
   }
-  process.stdout.write(`\n`);
+         .      .     (`\ `);
 }
 
-main()
-  .then(() => {
-    process.stdout.write(`Finished\n`);
-    process.exit(0);
+    ()
+  .    (() => {
+           .      .     (`        \ `);
+           .    (0);
   })
-  .catch((e) => {
-    process.stderr.write(e.message);
-    process.exit(1);
+  .     (( ) => {
+           .      .     ( .       );
+           .    (1);
   });

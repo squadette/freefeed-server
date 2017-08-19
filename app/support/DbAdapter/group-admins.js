@@ -1,77 +1,77 @@
 ///////////////////////////////////////////////////
-// Group administrators
+//                     
 ///////////////////////////////////////////////////
 
-const groupAdminTrait = (superClass) => class extends superClass {
-  getGroupAdministratorsIds(groupId) {
-    return this.database('group_admins').pluck('user_id').orderBy('created_at', 'desc').where('group_id', groupId)
+                      = (          ) =>                          {
+                           (       ) {
+               .        ('     _      ').     ('    _  ').       ('       _  ', '    ').     ('     _  ',        )
   }
 
   /**
-   * Returns plain object with group UIDs as keys and arrays of admin UIDs as values
+   *                                                                                
    */
-  async getGroupsAdministratorsIds(groupIds) {
-    const rows = await this.database.select('group_id', 'user_id').from('group_admins').where('group_id', 'in', groupIds);
-    const res = {};
-    rows.forEach(({ group_id, user_id }) => {
-      if (!res.hasOwnProperty(group_id)) {
-        res[group_id] = [];
+                                  (        ) {
+               =           .        .      ('     _  ', '    _  ').    ('     _      ').     ('     _  ', '  ',         );
+              = {};
+        .       (({      _  ,     _   }) => {
+         (!   .              (     _  )) {
+                 _    =   ;
       }
-      res[group_id].push(user_id);
+               _   .    (    _  );
     });
-    return res;
+              ;
   }
 
-  addAdministratorToGroup(groupId, adminId) {
-    const currentTime = new Date().toISOString()
+                         (       ,        ) {
+                      =         ().           ()
 
-    const payload = {
-      user_id:    adminId,
-      group_id:   groupId,
-      created_at: currentTime
+                  = {
+          _  :           ,
+           _  :          ,
+             _  :            
     }
 
-    return this.database('group_admins').returning('id').insert(payload)
+               .        ('     _      ').         ('  ').      (       )
   }
 
-  removeAdministratorFromGroup(groupId, adminId) {
-    return this.database('group_admins').where({
-      user_id:  adminId,
-      group_id: groupId
-    }).delete()
+                              (       ,        ) {
+               .        ('     _      ').     ({
+          _  :         ,
+           _  :        
+    }).      ()
   }
 
-  getManagedGroupIds(userId) {
-    return this.database('group_admins').pluck('group_id').orderBy('created_at', 'desc').where('user_id', userId);
+                    (      ) {
+               .        ('     _      ').     ('     _  ').       ('       _  ', '    ').     ('    _  ',       );
   }
 
-  async userHavePendingGroupRequests(userId) {
-    const res = await this.database.first('r.id')
-      .from('subscription_requests as r')
-      .innerJoin('group_admins as a', 'a.group_id', 'r.to_user_id')
-      .where({ 'a.user_id': userId })
-      .limit(1);
-    return !!res;
+                                    (      ) {
+              =           .        .     (' .  ')
+      .    ('            _             ')
+      .         ('     _           ', ' .     _  ', ' .  _    _  ')
+      .     ({ ' .    _  ':        })
+      .     (1);
+           !!   ;
   }
 
   /**
-   * Returns plain object with group UIDs as keys and arrays of requester's UIDs as values
+   *                                                                     '                
    */
-  async getPendingGroupRequests(groupsAdminId) {
-    const rows = await this.database.select('r.from_user_id as user_id', 'r.to_user_id as group_id')
-      .from('subscription_requests as r')
-      .innerJoin('group_admins as a', 'a.group_id', 'r.to_user_id')
-      .where({ 'a.user_id': groupsAdminId });
+                               (             ) {
+               =           .        .      (' .    _    _          _  ', ' .  _    _           _  ')
+      .    ('            _             ')
+      .         ('     _           ', ' .     _  ', ' .  _    _  ')
+      .     ({ ' .    _  ':               });
 
-    const res = {};
-    rows.forEach(({ group_id, user_id }) => {
-      if (!res.hasOwnProperty(group_id)) {
-        res[group_id] = [];
+              = {};
+        .       (({      _  ,     _   }) => {
+         (!   .              (     _  )) {
+                 _    =   ;
       }
-      res[group_id].push(user_id);
+               _   .    (    _  );
     });
-    return res;
+              ;
   }
 };
 
-export default groupAdminTrait;
+                              ;

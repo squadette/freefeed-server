@@ -1,91 +1,91 @@
-const CHANNEL_NAMES = {
-  USER_UPDATE:          'user:update',
-  POST_CREATED:         'post:new',
-  POST_UPDATED:         'post:update',
-  POST_DESTROYED:       'post:destroy',
-  POST_HIDDEN:          'post:hide',
-  POST_UNHIDDEN:        'post:unhide',
-  COMMENT_CREATED:      'comment:new',
-  COMMENT_UPDATED:      'comment:update',
-  COMMENT_DESTROYED:    'comment:destroy',
-  LIKE_ADDED:           'like:new',
-  LIKE_REMOVED:         'like:remove',
-  COMMENT_LIKE_ADDED:   'comment_like:new',
-  COMMENT_LIKE_REMOVED: 'comment_like:remove',
+             _      = {
+      _      :          '    :      ',
+      _       :         '    :   ',
+      _       :         '    :      ',
+      _         :       '    :       ',
+      _      :          '    :    ',
+      _        :        '    :      ',
+         _       :      '       :   ',
+         _       :      '       :      ',
+         _         :    '       :       ',
+      _     :           '    :   ',
+      _       :         '    :      ',
+         _    _     :   '       _    :   ',
+         _    _       : '       _    :      ',
 }
 
-export class PubSubAdapter {
-  constructor(redisClient) {
-    this.redisClient = redisClient
+                           {
+             (           ) {
+        .            =            
   }
 
   ///////////////////////////////////////////////////
 
-  userUpdated(payload) {
-    return this._publish(CHANNEL_NAMES.USER_UPDATE, payload)
+             (       ) {
+               ._       (       _     .    _      ,        )
   }
 
   ///////////////////////////////////////////////////
 
-  postCreated(payload) {
-    return this._publish(CHANNEL_NAMES.POST_CREATED, payload)
+             (       ) {
+               ._       (       _     .    _       ,        )
   }
 
-  postUpdated(payload) {
-    return this._publish(CHANNEL_NAMES.POST_UPDATED, payload)
+             (       ) {
+               ._       (       _     .    _       ,        )
   }
 
-  postDestroyed(payload) {
-    return this._publish(CHANNEL_NAMES.POST_DESTROYED, payload)
+               (       ) {
+               ._       (       _     .    _         ,        )
   }
 
-  postHidden(payload) {
-    return this._publish(CHANNEL_NAMES.POST_HIDDEN, payload)
+            (       ) {
+               ._       (       _     .    _      ,        )
   }
 
-  postUnhidden(payload) {
-    return this._publish(CHANNEL_NAMES.POST_UNHIDDEN, payload)
-  }
-
-  ///////////////////////////////////////////////////
-
-  commentCreated(payload) {
-    return this._publish(CHANNEL_NAMES.COMMENT_CREATED, payload)
-  }
-
-  commentUpdated(payload) {
-    return this._publish(CHANNEL_NAMES.COMMENT_UPDATED, payload)
-  }
-
-  commentDestroyed(payload) {
-    return this._publish(CHANNEL_NAMES.COMMENT_DESTROYED, payload)
+              (       ) {
+               ._       (       _     .    _        ,        )
   }
 
   ///////////////////////////////////////////////////
 
-  likeAdded(payload) {
-    return this._publish(CHANNEL_NAMES.LIKE_ADDED, payload)
+                (       ) {
+               ._       (       _     .       _       ,        )
   }
 
-  likeRemoved(payload) {
-    return this._publish(CHANNEL_NAMES.LIKE_REMOVED, payload)
+                (       ) {
+               ._       (       _     .       _       ,        )
   }
 
-  ///////////////////////////////////////////////////
-
-  commentLikeAdded(payload) {
-    return this._publish(CHANNEL_NAMES.COMMENT_LIKE_ADDED, payload);
-  }
-
-  commentLikeRemoved(payload) {
-    return this._publish(CHANNEL_NAMES.COMMENT_LIKE_REMOVED, payload);
+                  (       ) {
+               ._       (       _     .       _         ,        )
   }
 
   ///////////////////////////////////////////////////
 
-  _publish(channel, payload) {
-    return this.redisClient.publishAsync(channel, payload)
+           (       ) {
+               ._       (       _     .    _     ,        )
+  }
+
+             (       ) {
+               ._       (       _     .    _       ,        )
+  }
+
+  ///////////////////////////////////////////////////
+
+                  (       ) {
+               ._       (       _     .       _    _     ,        );
+  }
+
+                    (       ) {
+               ._       (       _     .       _    _       ,        );
+  }
+
+  ///////////////////////////////////////////////////
+
+  _       (       ,        ) {
+               .           .            (       ,        )
   }
 }
 
-PubSubAdapter.CHANNEL_NAMES = CHANNEL_NAMES
+             .       _      =        _     

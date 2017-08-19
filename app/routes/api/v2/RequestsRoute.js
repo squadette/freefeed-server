@@ -1,6 +1,6 @@
-import { RequestsControllerV2 } from '../../../controllers'
+       {                    2 }      '../../../           '
 
 
-export default function addRoutes(app) {
-  app.post('/v2/requests/:followedUserName/revoke', RequestsControllerV2.revokeRequest)
+                                 (   ) {
+     .    ('/ 2/        /:                /      ',                    2.             )
 }
